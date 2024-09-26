@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import {
 	packedUserLiteSchema,
 	packedUserDetailedNotMeOnlySchema,
@@ -10,6 +15,7 @@ import {
 import { packedNoteSchema } from '@/models/json-schema/note.js';
 import { packedUserListSchema } from '@/models/json-schema/user-list.js';
 import { packedAppSchema } from '@/models/json-schema/app.js';
+import { packedMessagingMessageSchema } from '@/models/json-schema/messaging-message.js';
 import { packedNotificationSchema } from '@/models/json-schema/notification.js';
 import { packedDriveFileSchema } from '@/models/json-schema/drive-file.js';
 import { packedDriveFolderSchema } from '@/models/json-schema/drive-folder.js';
@@ -19,7 +25,9 @@ import { packedRenoteMutingSchema } from '@/models/json-schema/renote-muting.js'
 import { packedBlockingSchema } from '@/models/json-schema/blocking.js';
 import { packedNoteReactionSchema } from '@/models/json-schema/note-reaction.js';
 import { packedHashtagSchema } from '@/models/json-schema/hashtag.js';
+import { packedInviteCodeSchema } from '@/models/json-schema/invite-code.js';
 import { packedPageSchema } from '@/models/json-schema/page.js';
+import { packedUserGroupSchema } from '@/models/json-schema/user-group.js';
 import { packedNoteFavoriteSchema } from '@/models/json-schema/note-favorite.js';
 import { packedChannelSchema } from '@/models/json-schema/channel.js';
 import { packedAntennaSchema } from '@/models/json-schema/antenna.js';
@@ -29,6 +37,7 @@ import { packedQueueCountSchema } from '@/models/json-schema/queue.js';
 import { packedGalleryPostSchema } from '@/models/json-schema/gallery-post.js';
 import { packedEmojiDetailedSchema, packedEmojiSimpleSchema } from '@/models/json-schema/emoji.js';
 import { packedFlashSchema } from '@/models/json-schema/flash.js';
+import { packedAnnouncementSchema } from '@/models/json-schema/announcement.js';
 
 export const refs = {
 	UserLite: packedUserLiteSchema,
@@ -40,7 +49,10 @@ export const refs = {
 	User: packedUserSchema,
 
 	UserList: packedUserListSchema,
+	UserGroup: packedUserGroupSchema,
+	Announcement: packedAnnouncementSchema,
 	App: packedAppSchema,
+	MessagingMessage: packedMessagingMessageSchema,
 	Note: packedNoteSchema,
 	NoteReaction: packedNoteReactionSchema,
 	NoteFavorite: packedNoteFavoriteSchema,
@@ -52,6 +64,7 @@ export const refs = {
 	RenoteMuting: packedRenoteMutingSchema,
 	Blocking: packedBlockingSchema,
 	Hashtag: packedHashtagSchema,
+	InviteCode: packedInviteCodeSchema,
 	Page: packedPageSchema,
 	Channel: packedChannelSchema,
 	QueueCount: packedQueueCountSchema,
@@ -131,7 +144,7 @@ type NullOrUndefined<p extends Schema, T> =
 	| T;
 
 // https://stackoverflow.com/questions/54938141/typescript-convert-union-to-intersection
-// Get intersection from union 
+// Get intersection from union
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
 type PartialIntersection<T> = Partial<UnionToIntersection<T>>;
 

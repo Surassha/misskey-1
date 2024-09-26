@@ -1,35 +1,47 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div ref="content" :class="[$style.content, { [$style.omitted]: omitted }]">
 	<slot></slot>
 	<button v-if="omitted" :class="$style.fade" class="_button" @click="() => { ignoreOmit = true; omitted = false; }">
-		<span :class="$style.fadeLabel">{{ $ts.showMore }}</span>
+		<span :class="$style.fadeLabel">{{ i18n.ts.showMore }}</span>
 	</button>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
+import { i18n } from '@/i18n.js';
 
 const props = withDefaults(defineProps<{
-	maxHeight: number;
+	maxHeight?: number;
 }>(), {
 	maxHeight: 200,
 });
 
-let content = $ref<HTMLElement>();
+let content = $shallowRef<HTMLElement>();
 let omitted = $ref(false);
 let ignoreOmit = $ref(false);
 
-onMounted(() => {
-	const calcOmit = () => {
-		if (omitted || ignoreOmit) return;
-		omitted = content.offsetHeight > props.maxHeight;
-	};
+const calcOmit = () => {
+	if (omitted || ignoreOmit) return;
+	omitted = content.offsetHeight > props.maxHeight;
+};
 
+const omitObserver = new ResizeObserver((entries, observer) => {
 	calcOmit();
-	new ResizeObserver((entries, observer) => {
-		calcOmit();
-	}).observe(content);
+});
+
+onMounted(() => {
+	calcOmit();
+	omitObserver.observe(content);
+});
+
+onUnmounted(() => {
+	omitObserver.disconnect();
 });
 </script>
 

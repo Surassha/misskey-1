@@ -1,6 +1,11 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div>
-	<Transition :name="$store.state.animation ? '_transition_zoom' : ''" mode="out-in">
+	<Transition :name="defaultStore.state.animation ? '_transition_zoom' : ''" mode="out-in">
 		<MkLoading v-if="fetching"/>
 		<div v-else :class="$style.root">
 			<div class="item _panel users">
@@ -57,11 +62,12 @@
 
 <script lang="ts" setup>
 import { onMounted } from 'vue';
-import * as os from '@/os';
+import * as os from '@/os.js';
 import MkNumberDiff from '@/components/MkNumberDiff.vue';
 import MkNumber from '@/components/MkNumber.vue';
-import { i18n } from '@/i18n';
-import { customEmojis } from '@/custom-emojis';
+import { i18n } from '@/i18n.js';
+import { customEmojis } from '@/custom-emojis.js';
+import { defaultStore } from '@/store.js';
 
 let stats: any = $ref(null);
 let usersComparedToThePrevDay = $ref<number>();
@@ -72,7 +78,7 @@ let fetching = $ref(true);
 onMounted(async () => {
 	const [_stats, _onlineUsersCount] = await Promise.all([
 		os.api('stats', {}),
-		os.api('get-online-users-count').then(res => res.count),
+		os.apiGet('get-online-users-count').then(res => res.count),
 	]);
 	stats = _stats;
 	onlineUsersCount = _onlineUsersCount;

@@ -1,44 +1,49 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader v-model:tab="tab" :actions="headerActions" :tabs="headerTabs"/></template>
-	<MkSpacer :content-max="700">
+	<MkSpacer :contentMax="700">
 		<div class="jqqmcavi">
-			<MkButton v-if="pageId" class="button" inline link :to="`/@${ author.username }/pages/${ currentName }`"><i class="ti ti-external-link"></i> {{ $ts._pages.viewPage }}</MkButton>
-			<MkButton v-if="!readonly" inline primary class="button" @click="save"><i class="ti ti-device-floppy"></i> {{ $ts.save }}</MkButton>
-			<MkButton v-if="pageId" inline class="button" @click="duplicate"><i class="ti ti-copy"></i> {{ $ts.duplicate }}</MkButton>
-			<MkButton v-if="pageId && !readonly" inline class="button" danger @click="del"><i class="ti ti-trash"></i> {{ $ts.delete }}</MkButton>
+			<MkButton v-if="pageId" class="button" inline link :to="`/@${ author.username }/pages/${ currentName }`"><i class="ti ti-external-link"></i> {{ i18n.ts._pages.viewPage }}</MkButton>
+			<MkButton v-if="!readonly" inline primary class="button" @click="save"><i class="ti ti-device-floppy"></i> {{ i18n.ts.save }}</MkButton>
+			<MkButton v-if="pageId" inline class="button" @click="duplicate"><i class="ti ti-copy"></i> {{ i18n.ts.duplicate }}</MkButton>
+			<MkButton v-if="pageId && !readonly" inline class="button" danger @click="del"><i class="ti ti-trash"></i> {{ i18n.ts.delete }}</MkButton>
 		</div>
 
 		<div v-if="tab === 'settings'">
 			<div class="_gaps_m">
 				<MkInput v-model="title">
-					<template #label>{{ $ts._pages.title }}</template>
+					<template #label>{{ i18n.ts._pages.title }}</template>
 				</MkInput>
 
 				<MkInput v-model="summary">
-					<template #label>{{ $ts._pages.summary }}</template>
+					<template #label>{{ i18n.ts._pages.summary }}</template>
 				</MkInput>
 
 				<MkInput v-model="name">
 					<template #prefix>{{ url }}/@{{ author.username }}/pages/</template>
-					<template #label>{{ $ts._pages.url }}</template>
+					<template #label>{{ i18n.ts._pages.url }}</template>
 				</MkInput>
 
-				<MkSwitch v-model="alignCenter">{{ $ts._pages.alignCenter }}</MkSwitch>
+				<MkSwitch v-model="alignCenter">{{ i18n.ts._pages.alignCenter }}</MkSwitch>
 
 				<MkSelect v-model="font">
-					<template #label>{{ $ts._pages.font }}</template>
-					<option value="serif">{{ $ts._pages.fontSerif }}</option>
-					<option value="sans-serif">{{ $ts._pages.fontSansSerif }}</option>
+					<template #label>{{ i18n.ts._pages.font }}</template>
+					<option value="serif">{{ i18n.ts._pages.fontSerif }}</option>
+					<option value="sans-serif">{{ i18n.ts._pages.fontSansSerif }}</option>
 				</MkSelect>
 
-				<MkSwitch v-model="hideTitleWhenPinned">{{ $ts._pages.hideTitleWhenPinned }}</MkSwitch>
+				<MkSwitch v-model="hideTitleWhenPinned">{{ i18n.ts._pages.hideTitleWhenPinned }}</MkSwitch>
 
 				<div class="eyeCatch">
-					<MkButton v-if="eyeCatchingImageId == null && !readonly" @click="setEyeCatchingImage"><i class="ti ti-plus"></i> {{ $ts._pages.eyeCatchingImageSet }}</MkButton>
+					<MkButton v-if="eyeCatchingImageId == null && !readonly" @click="setEyeCatchingImage"><i class="ti ti-plus"></i> {{ i18n.ts._pages.eyeCatchingImageSet }}</MkButton>
 					<div v-else-if="eyeCatchingImage">
 						<img :src="eyeCatchingImage.url" :alt="eyeCatchingImage.name" style="max-width: 100%;"/>
-						<MkButton v-if="!readonly" @click="removeEyeCatchingImage()"><i class="ti ti-trash"></i> {{ $ts._pages.eyeCatchingImageRemove }}</MkButton>
+						<MkButton v-if="!readonly" @click="removeEyeCatchingImage()"><i class="ti ti-trash"></i> {{ i18n.ts._pages.eyeCatchingImageRemove }}</MkButton>
 					</div>
 				</div>
 			</div>
@@ -63,13 +68,13 @@ import MkButton from '@/components/MkButton.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkInput from '@/components/MkInput.vue';
-import { url } from '@/config';
-import * as os from '@/os';
-import { selectFile } from '@/scripts/select-file';
-import { mainRouter } from '@/router';
-import { i18n } from '@/i18n';
-import { definePageMetadata } from '@/scripts/page-metadata';
-import { $i } from '@/account';
+import { url } from '@/config.js';
+import * as os from '@/os.js';
+import { selectFile } from '@/scripts/select-file.js';
+import { mainRouter } from '@/router.js';
+import { i18n } from '@/i18n.js';
+import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { $i } from '@/account.js';
 
 const props = defineProps<{
 	initPageId?: string;
@@ -281,8 +286,7 @@ definePageMetadata(computed(() => {
 	let title = i18n.ts._pages.newPage;
 	if (props.initPageId) {
 		title = i18n.ts._pages.editPage;
-	}
-	else if (props.initPageName && props.initUser) {
+	} else if (props.initPageName && props.initUser) {
 		title = i18n.ts._pages.readPage;
 	}
 	return {

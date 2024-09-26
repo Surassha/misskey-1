@@ -1,7 +1,12 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { IdService } from '@/core/IdService.js';
-import type { UserListsRepository, AntennasRepository } from '@/models/index.js';
+import type { UserListsRepository, UserGroupJoiningsRepository, AntennasRepository } from '@/models/_.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AntennaEntityService } from '@/core/entities/AntennaEntityService.js';
 import { DI } from '@/di-symbols.js';
@@ -13,6 +18,8 @@ export const meta = {
 
 	requireCredential: true,
 
+	prohibitMoved: true,
+
 	kind: 'write:account',
 
 	errors: {
@@ -20,6 +27,12 @@ export const meta = {
 			message: 'No such user list.',
 			code: 'NO_SUCH_USER_LIST',
 			id: '95063e93-a283-4b8b-9aa5-bcdb8df69a7f',
+		},
+
+		noSuchUserGroup: {
+			message: 'No such user group.',
+			code: 'NO_SUCH_USER_GROUP',
+			id: 'aa3c0b9a-8cae-47c0-92ac-202ce5906682',
 		},
 
 		tooManyAntennas: {
@@ -40,8 +53,9 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		name: { type: 'string', minLength: 1, maxLength: 100 },
-		src: { type: 'string', enum: ['home', 'all', 'users', 'list'] },
+		src: { type: 'string', enum: ['home', 'all', 'users', 'list', 'group', 'users_blacklist'] },
 		userListId: { type: 'string', format: 'misskey:id', nullable: true },
+		userGroupId: { type: 'string', format: 'misskey:id', nullable: true },
 		keywords: { type: 'array', items: {
 			type: 'array', items: {
 				type: 'string',
@@ -56,6 +70,7 @@ export const paramDef = {
 			type: 'string',
 		} },
 		caseSensitive: { type: 'boolean' },
+		localOnly: { type: 'boolean' },
 		withReplies: { type: 'boolean' },
 		withFile: { type: 'boolean' },
 		notify: { type: 'boolean' },
@@ -63,9 +78,8 @@ export const paramDef = {
 	required: ['name', 'src', 'keywords', 'excludeKeywords', 'users', 'caseSensitive', 'withReplies', 'withFile', 'notify'],
 } as const;
 
-// eslint-disable-next-line import/no-default-export
 @Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
+export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
 		@Inject(DI.antennasRepository)
 		private antennasRepository: AntennasRepository,
@@ -73,14 +87,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		@Inject(DI.userListsRepository)
 		private userListsRepository: UserListsRepository,
 
+		@Inject(DI.userGroupJoiningsRepository)
+		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
+
 		private antennaEntityService: AntennaEntityService,
 		private roleService: RoleService,
 		private idService: IdService,
 		private globalEventService: GlobalEventService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			if ((ps.keywords.length === 0) || ps.keywords[0].every(x => x === '')) {
-				throw new Error('invalid param');
+			if (ps.keywords.flat().every(x => x === '') && ps.excludeKeywords.flat().every(x => x === '')) {
+				throw new Error('either keywords or excludeKeywords is required.');
 			}
 
 			const currentAntennasCount = await this.antennasRepository.countBy({
@@ -91,6 +108,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			}
 
 			let userList;
+			let userGroupJoining;
 
 			if (ps.src === 'list' && ps.userListId) {
 				userList = await this.userListsRepository.findOneBy({
@@ -101,22 +119,32 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				if (userList == null) {
 					throw new ApiError(meta.errors.noSuchUserList);
 				}
+			} else if (ps.src === 'group' && ps.userGroupId) {
+				userGroupJoining = await this.userGroupJoiningsRepository.findOneBy({
+					userGroupId: ps.userGroupId,
+					userId: me.id,
+				});
+
+				if (userGroupJoining == null) {
+					throw new ApiError(meta.errors.noSuchUserGroup);
+				}
 			}
 
 			const now = new Date();
 
 			const antenna = await this.antennasRepository.insert({
-				id: this.idService.genId(),
-				createdAt: now,
+				id: this.idService.gen(now.getTime()),
 				lastUsedAt: now,
 				userId: me.id,
 				name: ps.name,
 				src: ps.src,
 				userListId: userList ? userList.id : null,
+				userGroupJoiningId: userGroupJoining ? userGroupJoining.id : null,
 				keywords: ps.keywords,
 				excludeKeywords: ps.excludeKeywords,
 				users: ps.users,
 				caseSensitive: ps.caseSensitive,
+				localOnly: ps.localOnly,
 				withReplies: ps.withReplies,
 				withFile: ps.withFile,
 				notify: ps.notify,

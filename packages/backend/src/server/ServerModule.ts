@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and other misskey contributors
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 import { Module } from '@nestjs/common';
 import { EndpointsModule } from '@/server/api/EndpointsModule.js';
 import { CoreModule } from '@/core/CoreModule.js';
@@ -30,10 +35,15 @@ import { HashtagChannelService } from './api/stream/channels/hashtag.js';
 import { HomeTimelineChannelService } from './api/stream/channels/home-timeline.js';
 import { HybridTimelineChannelService } from './api/stream/channels/hybrid-timeline.js';
 import { LocalTimelineChannelService } from './api/stream/channels/local-timeline.js';
+import { MessagingIndexChannelService } from './api/stream/channels/messaging-index.js';
+import { MessagingChannelService } from './api/stream/channels/messaging.js';
 import { QueueStatsChannelService } from './api/stream/channels/queue-stats.js';
 import { ServerStatsChannelService } from './api/stream/channels/server-stats.js';
 import { UserListChannelService } from './api/stream/channels/user-list.js';
 import { OpenApiServerService } from './api/openapi/OpenApiServerService.js';
+import { ClientLoggerService } from './web/ClientLoggerService.js';
+import { RoleTimelineChannelService } from './api/stream/channels/role-timeline.js';
+import { OAuth2ProviderService } from './oauth/OAuth2ProviderService.js';
 
 @Module({
 	imports: [
@@ -42,6 +52,7 @@ import { OpenApiServerService } from './api/openapi/OpenApiServerService.js';
 	],
 	providers: [
 		ClientServerService,
+		ClientLoggerService,
 		FeedService,
 		UrlPreviewService,
 		ActivityPubServerService,
@@ -67,13 +78,17 @@ import { OpenApiServerService } from './api/openapi/OpenApiServerService.js';
 		DriveChannelService,
 		GlobalTimelineChannelService,
 		HashtagChannelService,
+		RoleTimelineChannelService,
 		HomeTimelineChannelService,
 		HybridTimelineChannelService,
 		LocalTimelineChannelService,
+		MessagingIndexChannelService,
+		MessagingChannelService,
 		QueueStatsChannelService,
 		ServerStatsChannelService,
 		UserListChannelService,
 		OpenApiServerService,
+		OAuth2ProviderService,
 	],
 	exports: [
 		ServerService,

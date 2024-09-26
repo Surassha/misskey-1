@@ -1,13 +1,18 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div :class="$style.root">
-	<MkAvatar :class="$style.avatar" :user="$i" link preview/>
+	<MkAvatar :class="$style.avatar" :user="user" link preview/>
 	<div :class="$style.main">
 		<div :class="$style.header">
-			<MkUserName :user="$i"/>
+			<MkUserName :user="user" :nowrap="true"/>
 		</div>
 		<div>
-			<div :class="$style.content">
-				<Mfm :text="text.trim()" :author="$i" :i="$i"/>
+			<div>
+				<Mfm :text="text.trim()" :author="user" :nyaize="'respect'" :i="user"/>
 			</div>
 		</div>
 	</div>
@@ -16,9 +21,11 @@
 
 <script lang="ts" setup>
 import { } from 'vue';
+import * as Misskey from 'misskey-js';
 
 const props = defineProps<{
 	text: string;
+	user: Misskey.entities.User;
 }>();
 </script>
 
@@ -49,6 +56,9 @@ const props = defineProps<{
 .header {
 	margin-bottom: 2px;
 	font-weight: bold;
+	width: 100%;
+	overflow: clip;
+    text-overflow: ellipsis;
 }
 
 @container (min-width: 350px) {

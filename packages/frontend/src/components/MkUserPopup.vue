@@ -1,15 +1,20 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <Transition
-	:enter-active-class="$store.state.animation ? $style.transition_popup_enterActive : ''"
-	:leave-active-class="$store.state.animation ? $style.transition_popup_leaveActive : ''"
-	:enter-from-class="$store.state.animation ? $style.transition_popup_enterFrom : ''"
-	:leave-to-class="$store.state.animation ? $style.transition_popup_leaveTo : ''"
-	appear @after-leave="emit('closed')"
+	:enterActiveClass="defaultStore.state.animation ? $style.transition_popup_enterActive : ''"
+	:leaveActiveClass="defaultStore.state.animation ? $style.transition_popup_leaveActive : ''"
+	:enterFromClass="defaultStore.state.animation ? $style.transition_popup_enterFrom : ''"
+	:leaveToClass="defaultStore.state.animation ? $style.transition_popup_leaveTo : ''"
+	appear @afterLeave="emit('closed')"
 >
 	<div v-if="showing" :class="$style.root" class="_popup _shadow" :style="{ zIndex, top: top + 'px', left: left + 'px' }" @mouseover="() => { emit('mouseover'); }" @mouseleave="() => { emit('mouseleave'); }">
 		<div v-if="user != null">
 			<div :class="$style.banner" :style="user.bannerUrl ? `background-image: url(${user.bannerUrl})` : ''">
-				<span v-if="$i && $i.id != user.id && user.isFollowed" :class="$style.followed">{{ $ts.followsYou }}</span>
+				<span v-if="$i && $i.id != user.id && user.isFollowed" :class="$style.followed">{{ i18n.ts.followsYou }}</span>
 			</div>
 			<svg viewBox="0 0 128 128" :class="$style.avatarBack">
 				<g transform="matrix(1.6,0,0,1.6,-38.4,-51.2)">
@@ -22,25 +27,25 @@
 				<div :class="$style.username"><MkAcct :user="user"/></div>
 			</div>
 			<div :class="$style.description">
-				<Mfm v-if="user.description" :text="user.description" :author="user" :i="$i"/>
+				<Mfm v-if="user.description" :class="$style.mfm" :text="user.description" :author="user"/>
 				<div v-else style="opacity: 0.7;">{{ i18n.ts.noAccountDescription }}</div>
 			</div>
 			<div :class="$style.status">
 				<div :class="$style.statusItem">
-					<div :class="$style.statusItemLabel">{{ $ts.notes }}</div>
+					<div :class="$style.statusItemLabel">{{ i18n.ts.notes }}</div>
 					<div>{{ number(user.notesCount) }}</div>
 				</div>
-				<div :class="$style.statusItem">
-					<div :class="$style.statusItemLabel">{{ $ts.following }}</div>
+				<div v-if="isFfVisibleForMe(user)" :class="$style.statusItem">
+					<div :class="$style.statusItemLabel">{{ i18n.ts.following }}</div>
 					<div>{{ number(user.followingCount) }}</div>
 				</div>
-				<div :class="$style.statusItem">
-					<div :class="$style.statusItemLabel">{{ $ts.followers }}</div>
+				<div v-if="isFfVisibleForMe(user)" :class="$style.statusItem">
+					<div :class="$style.statusItemLabel">{{ i18n.ts.followers }}</div>
 					<div>{{ number(user.followersCount) }}</div>
 				</div>
 			</div>
 			<button class="_button" :class="$style.menu" @click="showMenu"><i class="ti ti-dots"></i></button>
-			<MkFollowButton v-if="$i && user.id != $i.id" :class="$style.follow" :user="user" mini/>
+			<MkFollowButton v-if="$i && user.id != $i.id" v-model:user="user" :class="$style.follow" mini/>
 		</div>
 		<div v-else>
 			<MkLoading/>
@@ -51,14 +56,16 @@
 
 <script lang="ts" setup>
 import { onMounted } from 'vue';
-import * as Acct from 'misskey-js/built/acct';
-import * as misskey from 'misskey-js';
+import * as Misskey from 'misskey-js';
 import MkFollowButton from '@/components/MkFollowButton.vue';
-import { userPage } from '@/filters/user';
-import * as os from '@/os';
-import { getUserMenu } from '@/scripts/get-user-menu';
-import number from '@/filters/number';
-import { i18n } from '@/i18n';
+import { userPage } from '@/filters/user.js';
+import * as os from '@/os.js';
+import { getUserMenu } from '@/scripts/get-user-menu.js';
+import number from '@/filters/number.js';
+import { i18n } from '@/i18n.js';
+import { defaultStore } from '@/store.js';
+import { $i } from '@/account.js';
+import { isFfVisibleForMe } from '@/scripts/isFfVisibleForMe.js';
 
 const props = defineProps<{
 	showing: boolean;
@@ -73,12 +80,13 @@ const emit = defineEmits<{
 }>();
 
 const zIndex = os.claimZIndex('middle');
-let user = $ref<misskey.entities.UserDetailed | null>(null);
+let user = $ref<Misskey.entities.UserDetailed | null>(null);
 let top = $ref(0);
 let left = $ref(0);
 
 function showMenu(ev: MouseEvent) {
-	os.popupMenu(getUserMenu(user), ev.currentTarget ?? ev.target);
+	const { menu, cleanup } = getUserMenu(user);
+	os.popupMenu(menu, ev.currentTarget ?? ev.target).finally(cleanup);
 }
 
 onMounted(() => {
@@ -86,7 +94,7 @@ onMounted(() => {
 		user = props.q;
 	} else {
 		const query = props.q.startsWith('@') ?
-			Acct.parse(props.q.substr(1)) :
+			Misskey.acct.parse(props.q.substring(1)) :
 			{ userId: props.q };
 
 		os.api('users/show', query).then(res => {
@@ -188,6 +196,13 @@ onMounted(() => {
 	text-align: center;
 	border-top: solid 1px var(--divider);
 	border-bottom: solid 1px var(--divider);
+}
+
+.mfm {
+	display: -webkit-box;
+	-webkit-line-clamp: 5;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
 }
 
 .status {

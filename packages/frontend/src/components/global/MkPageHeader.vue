@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <div v-if="show" ref="el" :class="[$style.root]" :style="{ background: bg }">
 	<div :class="[$style.upper, { [$style.slim]: narrow, [$style.thin]: thin_ }]">
@@ -8,7 +13,9 @@
 
 		<template v-if="metadata">
 			<div v-if="!hideTitle" :class="$style.titleContainer" @click="top">
-				<MkAvatar v-if="metadata.avatar" :class="$style.titleAvatar" :user="metadata.avatar" indicator/>
+				<div v-if="metadata.avatar" :class="$style.titleAvatarContainer">
+					<MkAvatar :class="$style.titleAvatar" :user="metadata.avatar" indicator/>
+				</div>
 				<i v-else-if="metadata.icon" :class="[$style.titleIcon, metadata.icon]"></i>
 
 				<div :class="$style.title">
@@ -19,7 +26,7 @@
 					</div>
 				</div>
 			</div>
-			<XTabs v-if="!narrow || hideTitle" :class="$style.tabs" :tab="tab" :tabs="tabs" :root-el="el" @update:tab="key => emit('update:tab', key)" @tab-click="onTabClick"/>
+			<XTabs v-if="!narrow || hideTitle" :class="$style.tabs" :tab="tab" :tabs="tabs" :rootEl="el" @update:tab="key => emit('update:tab', key)" @tabClick="onTabClick"/>
 		</template>
 		<div v-if="(!thin_ && narrow && !hideTitle) || (actions && actions.length > 0)" :class="$style.buttonsRight">
 			<template v-for="action in actions">
@@ -28,7 +35,7 @@
 		</div>
 	</div>
 	<div v-if="(narrow && !hideTitle) && hasTabs" :class="[$style.lower, { [$style.slim]: narrow, [$style.thin]: thin_ }]">
-		<XTabs :class="$style.tabs" :tab="tab" :tabs="tabs" :root-el="el" @update:tab="key => emit('update:tab', key)" @tab-click="onTabClick"/>
+		<XTabs :class="$style.tabs" :tab="tab" :tabs="tabs" :rootEl="el" @update:tab="key => emit('update:tab', key)" @tabClick="onTabClick"/>
 	</div>
 </div>
 </template>
@@ -37,10 +44,10 @@
 import { onMounted, onUnmounted, ref, inject } from 'vue';
 import tinycolor from 'tinycolor2';
 import XTabs, { Tab } from './MkPageHeader.tabs.vue';
-import { scrollToTop } from '@/scripts/scroll';
-import { globalEvents } from '@/events';
-import { injectPageMetadata } from '@/scripts/page-metadata';
-import { $i, openAccountMenu as openAccountMenu_ } from '@/account';
+import { scrollToTop } from '@/scripts/scroll.js';
+import { globalEvents } from '@/events.js';
+import { injectPageMetadata } from '@/scripts/page-metadata.js';
+import { $i, openAccountMenu as openAccountMenu_ } from '@/account.js';
 
 const props = withDefaults(defineProps<{
 	tabs?: Tab[];
@@ -154,7 +161,7 @@ onUnmounted(() => {
 	}
 
 	&.thin {
-		--height: 42px;
+		--height: 40px;
 
 		> .buttons {
 			> .button {
@@ -241,7 +248,7 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	max-width: min(30vw, 400px);
-	overflow: auto;
+	overflow: clip;
 	white-space: nowrap;
 	text-align: left;
 	font-weight: bold;
@@ -249,13 +256,19 @@ onUnmounted(() => {
 	margin-left: 24px;
 }
 
-.titleAvatar {
+.titleAvatarContainer {
 	$size: 32px;
-	display: inline-block;
+	contain: strict;
+	overflow: clip;
 	width: $size;
 	height: $size;
-	vertical-align: bottom;
-	margin: 0 8px;
+	padding: 8px;
+	flex-shrink: 0;
+}
+
+.titleAvatar {
+	width: 100%;
+	height: 100%;
 	pointer-events: none;
 }
 

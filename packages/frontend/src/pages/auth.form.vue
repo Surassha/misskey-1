@@ -1,28 +1,33 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
-	<section>
-		<div v-if="app.permission.length > 0">
-			<p>{{ $t('_auth.permission', { name }) }}</p>
-			<ul>
-				<li v-for="p in app.permission" :key="p">{{ $t(`_permissions.${p}`) }}</li>
-			</ul>
-		</div>
-		<div>{{ i18n.t('_auth.shareAccess', { name: `${name} (${app.id})` }) }}</div>
-		<div :class="$style.buttons">
-			<MkButton inline @click="cancel">{{ i18n.ts.cancel }}</MkButton>
-			<MkButton inline primary @click="accept">{{ i18n.ts.accept }}</MkButton>
-		</div>
-	</section>
+<section>
+	<div v-if="app.permission.length > 0">
+		<p>{{ i18n.t('_auth.permission', { name }) }}</p>
+		<ul>
+			<li v-for="p in app.permission" :key="p">{{ i18n.t(`_permissions.${p}`) }}</li>
+		</ul>
+	</div>
+	<div>{{ i18n.t('_auth.shareAccess', { name: `${name} (${app.id})` }) }}</div>
+	<div :class="$style.buttons">
+		<MkButton inline @click="cancel">{{ i18n.ts.cancel }}</MkButton>
+		<MkButton inline primary @click="accept">{{ i18n.ts.accept }}</MkButton>
+	</div>
+</section>
 </template>
 
 <script lang="ts" setup>
 import { } from 'vue';
+import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
-import * as os from '@/os';
-import { i18n } from '@/i18n';
-import { AuthSession } from 'misskey-js/built/entities';
+import * as os from '@/os.js';
+import { i18n } from '@/i18n.js';
 
 const props = defineProps<{
-	session: AuthSession;
+	session: Misskey.entities.AuthSession;
 }>();
 
 const emit = defineEmits<{
@@ -53,7 +58,6 @@ function accept() {
 		emit('accepted');
 	});
 }
-
 </script>
 
 <style lang="scss" module>

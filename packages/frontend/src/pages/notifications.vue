@@ -1,9 +1,14 @@
+<!--
+SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
 <template>
 <MkStickyContainer>
 	<template #header><MkPageHeader v-model:tab="tab" :actions="headerActions" :tabs="headerTabs"/></template>
-	<MkSpacer :content-max="800">
-		<div v-if="tab === 'all' || tab === 'unread'">
-			<XNotifications class="notifications" :include-types="includeTypes" :unread-only="unreadOnly"/>
+	<MkSpacer :contentMax="800">
+		<div v-if="tab === 'all'">
+			<XNotifications class="notifications" :excludeTypes="excludeTypes"/>
 		</div>
 		<div v-else-if="tab === 'mentions'">
 			<MkNotes :pagination="mentionsPagination"/>
@@ -19,14 +24,14 @@
 import { computed } from 'vue';
 import XNotifications from '@/components/MkNotifications.vue';
 import MkNotes from '@/components/MkNotes.vue';
-import * as os from '@/os';
-import { i18n } from '@/i18n';
-import { definePageMetadata } from '@/scripts/page-metadata';
-import { notificationTypes } from '@/const';
+import * as os from '@/os.js';
+import { i18n } from '@/i18n.js';
+import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { notificationTypes } from '@/const.js';
 
 let tab = $ref('all');
 let includeTypes = $ref<string[] | null>(null);
-let unreadOnly = $computed(() => tab === 'unread');
+const excludeTypes = $computed(() => includeTypes ? notificationTypes.filter(t => !includeTypes.includes(t)) : null);
 
 const mentionsPagination = {
 	endpoint: 'notes/mentions' as const,
@@ -76,10 +81,6 @@ const headerTabs = $computed(() => [{
 	key: 'all',
 	title: i18n.ts.all,
 	icon: 'ti ti-point',
-}, {
-	key: 'unread',
-	title: i18n.ts.unread,
-	icon: 'ti ti-loader',
 }, {
 	key: 'mentions',
 	title: i18n.ts.mentions,
